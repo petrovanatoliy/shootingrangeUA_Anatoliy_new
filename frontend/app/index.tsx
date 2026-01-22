@@ -22,19 +22,15 @@ const COLORS = {
 
 export default function WelcomeScreen() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      setLoading(false);
-    }, 2000);
-
-    checkAuth().finally(() => {
-      clearTimeout(timeout);
-    });
-
-    return () => clearTimeout(timeout);
-  }, []);
+    if (!checked) {
+      setChecked(true);
+      checkAuth();
+    }
+  }, [checked]);
 
   const checkAuth = async () => {
     try {
@@ -51,7 +47,6 @@ export default function WelcomeScreen() {
     } catch (error) {
       console.error('Auth check error:', error);
     }
-    setLoading(false);
   };
 
   if (loading) {
