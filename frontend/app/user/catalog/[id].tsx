@@ -186,6 +186,7 @@ export default function CatalogDetailScreen() {
         />
       ) : (
         <FlatList
+          key="services-list"
           data={services}
           keyExtractor={(item) => item.id}
           renderItem={renderService}
