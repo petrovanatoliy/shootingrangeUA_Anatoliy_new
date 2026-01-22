@@ -167,6 +167,7 @@ export default function CatalogDetailScreen() {
 
       {activeTab === 'products' ? (
         <FlatList
+          key="products-list"
           data={products}
           keyExtractor={(item) => item.id}
           renderItem={renderProduct}
