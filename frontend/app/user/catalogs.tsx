@@ -82,6 +82,7 @@ export default function CatalogsScreen() {
       </View>
 
       <FlatList
+        key="catalogs-grid"
         data={catalogs}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
