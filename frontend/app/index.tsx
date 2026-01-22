@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,10 +18,9 @@ const COLORS = {
   light: '#CAD2F6',
   warm: '#5A3E40',
   white: '#FFFFFF',
-  text: '#FFFFFF',
 };
 
-export default function HomeScreen() {
+export default function WelcomeScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
@@ -33,8 +31,12 @@ export default function HomeScreen() {
   const checkAuth = async () => {
     try {
       const adminMode = await AsyncStorage.getItem('admin_mode');
+      const userId = await AsyncStorage.getItem('user_id');
+      
       if (adminMode === 'true') {
         router.replace('/admin/dashboard');
+      } else if (userId) {
+        router.replace('/user/home');
       }
     } catch (error) {
       console.error('Auth check error:', error);
@@ -55,21 +57,27 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <View style={styles.logoContainer}>
-          <Ionicons name="locate" size={80} color={COLORS.accent} />
+          <Ionicons name="locate" size={100} color={COLORS.accent} />
           <Text style={styles.title}>Shooting Range</Text>
-          <Text style={styles.subtitle}>Адміністративна панель</Text>
+          <Text style={styles.subtitle}>Тир та стрілецькі послуги</Text>
         </View>
 
         <View style={styles.buttonsContainer}>
           <TouchableOpacity
-            style={styles.mainButton}
-            onPress={() => router.push('/admin/login')}
+            style={styles.userButton}
+            onPress={() => router.push('/user/login')}
           >
-            <Ionicons name="shield-checkmark" size={24} color={COLORS.white} />
-            <Text style={styles.buttonText}>Увійти як адміністратор</Text>
+            <Ionicons name="person" size={24} color={COLORS.white} />
+            <Text style={styles.buttonText}>Увійти як клієнт</Text>
           </TouchableOpacity>
 
-          <Text style={styles.versionText}>Версія 1.0.0</Text>
+          <TouchableOpacity
+            style={styles.adminButton}
+            onPress={() => router.push('/admin/login')}
+          >
+            <Ionicons name="shield-checkmark" size={20} color={COLORS.light} />
+            <Text style={styles.adminButtonText}>Адміністратор</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </SafeAreaView>
@@ -99,10 +107,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: 'bold',
     color: COLORS.white,
-    marginTop: 16,
+    marginTop: 20,
   },
   subtitle: {
     fontSize: 16,
@@ -110,27 +118,36 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   buttonsContainer: {
-    gap: 16,
+    gap: 12,
   },
-  mainButton: {
+  userButton: {
     backgroundColor: COLORS.secondary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
+    paddingVertical: 18,
+    paddingHorizontal: 24,
+    borderRadius: 16,
+    gap: 12,
+  },
+  adminButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 12,
-    gap: 12,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   buttonText: {
     color: COLORS.white,
     fontSize: 18,
     fontWeight: '600',
   },
-  versionText: {
-    textAlign: 'center',
-    color: COLORS.accent,
-    fontSize: 12,
-    marginTop: 16,
+  adminButtonText: {
+    color: COLORS.light,
+    fontSize: 14,
   },
 });
