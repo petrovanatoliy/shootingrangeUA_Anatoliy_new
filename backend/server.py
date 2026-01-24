@@ -490,6 +490,109 @@ async def get_user_by_phone(phone: str):
         raise HTTPException(status_code=404, detail="User not found")
     return User(**user)
 
+# ===================== CART ENDPOINTS =====================
+
+@api_router.get("/cart/{user_id}", response_model=Cart)
+async def get_user_cart(user_id: str):
+    """Get user's cart"""
+    cart = await db.carts.find_one({"user_id": user_id})
+    if not cart:
+        # Create empty cart
+        new_cart = Cart(user_id=user_id, items=[])
+        await db.carts.insert_one(new_cart.dict())
+        return new_cart
+    return Cart(**cart)
+
+@api_router.post("/cart/{user_id}/items")
+async def add_item_to_cart(user_id: str, item: CartItemCreate):
+    """Add item to cart or update quantity if exists"""
+    cart = await db.carts.find_one({"user_id": user_id})
+    
+    if not cart:
+        # Create new cart with item
+        cart_item = CartItem(**item.dict())
+        new_cart = Cart(user_id=user_id, items=[cart_item])
+        await db.carts.insert_one(new_cart.dict())
+        return {"success": True, "message": "Item added to cart"}
+    
+    # Check if item already exists
+    items = [CartItem(**i) for i in cart.get("items", [])]
+    existing_item = None
+    existing_index = -1
+    
+    for idx, cart_item in enumerate(items):
+        if cart_item.item_id == item.item_id and cart_item.type == item.type:
+            existing_item = cart_item
+            existing_index = idx
+            break
+    
+    if existing_item:
+        # Update quantity
+        items[existing_index].quantity += item.quantity
+    else:
+        # Add new item
+        new_item = CartItem(**item.dict())
+        items.append(new_item)
+    
+    # Update cart
+    await db.carts.update_one(
+        {"user_id": user_id},
+        {"$set": {"items": [i.dict() for i in items], "updated_at": datetime.utcnow()}}
+    )
+    
+    return {"success": True, "message": "Item added to cart"}
+
+@api_router.put("/cart/{user_id}/items/{item_id}")
+async def update_cart_item(user_id: str, item_id: str, quantity: int):
+    """Update item quantity in cart"""
+    cart = await db.carts.find_one({"user_id": user_id})
+    if not cart:
+        raise HTTPException(status_code=404, detail="Cart not found")
+    
+    items = [CartItem(**i) for i in cart.get("items", [])]
+    
+    if quantity <= 0:
+        # Remove item
+        items = [i for i in items if i.id != item_id]
+    else:
+        # Update quantity
+        for item in items:
+            if item.id == item_id:
+                item.quantity = quantity
+                break
+    
+    await db.carts.update_one(
+        {"user_id": user_id},
+        {"$set": {"items": [i.dict() for i in items], "updated_at": datetime.utcnow()}}
+    )
+    
+    return {"success": True, "message": "Cart updated"}
+
+@api_router.delete("/cart/{user_id}/items/{item_id}")
+async def remove_cart_item(user_id: str, item_id: str):
+    """Remove item from cart"""
+    cart = await db.carts.find_one({"user_id": user_id})
+    if not cart:
+        raise HTTPException(status_code=404, detail="Cart not found")
+    
+    items = [CartItem(**i) for i in cart.get("items", []) if i["id"] != item_id]
+    
+    await db.carts.update_one(
+        {"user_id": user_id},
+        {"$set": {"items": items, "updated_at": datetime.utcnow()}}
+    )
+    
+    return {"success": True, "message": "Item removed from cart"}
+
+@api_router.delete("/cart/{user_id}")
+async def clear_cart(user_id: str):
+    """Clear user's cart"""
+    await db.carts.update_one(
+        {"user_id": user_id},
+        {"$set": {"items": [], "updated_at": datetime.utcnow()}}
+    )
+    return {"success": True, "message": "Cart cleared"}
+
 # ===================== ORDER ENDPOINTS =====================
 
 @api_router.post("/orders", response_model=Order)
