@@ -64,7 +64,7 @@ export default function OrdersScreen() {
   const loadData = async () => {
     try {
       const [ordersRes, usersRes] = await Promise.all([
-        axios.get(`${API_URL}/api/orders`),
+        axios.get(`${API_URL}/api/admin/orders`),
         axios.get(`${API_URL}/api/users`),
       ]);
 
