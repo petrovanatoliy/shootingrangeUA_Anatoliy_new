@@ -104,6 +104,11 @@ const styles = StyleSheet.create({
     height: 70,
     paddingBottom: 12,
     paddingTop: 8,
+    marginBottom: 35,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
   },
   tabLabel: {
     fontSize: 11,
