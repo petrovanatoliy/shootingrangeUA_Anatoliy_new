@@ -125,6 +125,9 @@ export default function UserLoginScreen() {
       await AsyncStorage.setItem('user_id', response.data.id);
       await AsyncStorage.setItem('user_data', JSON.stringify(response.data));
       
+      // Load user's cart
+      setUserId(response.data.id);
+      
       Alert.alert(
         'Вітаємо!',
         'Вашу дисконтну картку створено. Ви отримуєте бонуси за кожне замовлення!',
