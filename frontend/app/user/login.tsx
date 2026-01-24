@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import { useCartStore } from '../../store/cartStore';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
