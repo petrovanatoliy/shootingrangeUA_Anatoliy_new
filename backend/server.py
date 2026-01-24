@@ -644,9 +644,12 @@ async def create_order(order_data: OrderCreate):
     return order_obj
 
 @api_router.get("/orders", response_model=List[Order])
-async def get_orders(user_id: Optional[str] = None):
-    query = {"user_id": user_id} if user_id else {}
-    orders = await db.orders.find(query).sort("created_at", -1).to_list(1000)
+async def get_orders(user_id: str):
+    """Get orders for a specific user - user_id is required"""
+    if not user_id:
+        raise HTTPException(status_code=400, detail="user_id is required")
+    
+    orders = await db.orders.find({"user_id": user_id}).sort("created_at", -1).to_list(1000)
     return [Order(**o) for o in orders]
 
 @api_router.get("/orders/{order_id}", response_model=Order)
