@@ -91,6 +91,10 @@ export default function UserLoginScreen() {
       // User exists, log them in
       await AsyncStorage.setItem('user_id', response.data.id);
       await AsyncStorage.setItem('user_data', JSON.stringify(response.data));
+      
+      // Load user's cart
+      setUserId(response.data.id);
+      
       router.replace('/user/home');
     } catch (error: any) {
       if (error.response?.status === 404) {
