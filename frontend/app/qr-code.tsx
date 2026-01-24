@@ -100,7 +100,19 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     backgroundColor: '#1a1a2e',
-    paddingVertical: 40,
+    paddingVertical: 20,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    gap: 8,
+  },
+  backText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '500',
   },
   content: {
     alignItems: 'center',
@@ -131,9 +143,26 @@ const styles = StyleSheet.create({
   },
   urlText: {
     marginTop: 20,
-    fontSize: 14,
+    fontSize: 12,
     color: '#333',
     textAlign: 'center',
+  },
+  tunnelInfo: {
+    marginTop: 15,
+    padding: 10,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    width: '100%',
+  },
+  tunnelLabel: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  tunnelValue: {
+    fontSize: 11,
+    color: '#333',
   },
   errorText: {
     fontSize: 16,
@@ -173,8 +202,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   link: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#4ea8de',
-    marginBottom: 5,
+    marginBottom: 10,
+    paddingVertical: 8,
   },
 });
