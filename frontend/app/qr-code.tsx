@@ -39,6 +39,11 @@ export default function QRCodeScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <Ionicons name="arrow-back" size={24} color="#fff" />
+        <Text style={styles.backText}>Назад</Text>
+      </TouchableOpacity>
+
       <View style={styles.content}>
         <Text style={styles.title}>📱 QR Код для Expo Go</Text>
         <Text style={styles.subtitle}>Скануйте цей QR код в додатку Expo Go</Text>
@@ -56,6 +61,12 @@ export default function QRCodeScreen() {
                   color="black"
                 />
                 <Text style={styles.urlText}>{expoUrl}</Text>
+                {tunnelUrl && (
+                  <View style={styles.tunnelInfo}>
+                    <Text style={styles.tunnelLabel}>Tunnel Host:</Text>
+                    <Text style={styles.tunnelValue}>{tunnelUrl}</Text>
+                  </View>
+                )}
               </>
             ) : (
               <Text style={styles.errorText}>Не вдалося отримати URL</Text>
@@ -73,8 +84,12 @@ export default function QRCodeScreen() {
 
         <View style={styles.linkSection}>
           <Text style={styles.linkTitle}>Посилання для встановлення Expo Go:</Text>
-          <Text style={styles.link}>iOS: https://apps.apple.com/app/expo-go/id982107779</Text>
-          <Text style={styles.link}>Android: https://play.google.com/store/apps/details?id=host.exp.exponent</Text>
+          <TouchableOpacity onPress={() => Linking.openURL('https://apps.apple.com/app/expo-go/id982107779')}>
+            <Text style={styles.link}>📱 iOS: App Store</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => Linking.openURL('https://play.google.com/store/apps/details?id=host.exp.exponent')}>
+            <Text style={styles.link}>🤖 Android: Google Play</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </ScrollView>
