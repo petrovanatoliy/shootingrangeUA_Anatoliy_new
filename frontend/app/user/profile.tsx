@@ -94,6 +94,7 @@ export default function ProfileScreen() {
           onPress: async () => {
             await AsyncStorage.removeItem('user_id');
             await AsyncStorage.removeItem('user_data');
+            setUserId(null); // Clear cart
             router.replace('/');
           },
         },
