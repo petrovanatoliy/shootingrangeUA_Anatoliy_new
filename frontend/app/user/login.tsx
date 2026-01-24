@@ -32,6 +32,7 @@ const COLORS = {
 
 export default function UserLoginScreen() {
   const router = useRouter();
+  const { setUserId } = useCartStore();
   const [countryCode, setCountryCode] = useState('+38');
   const [phone, setPhone] = useState('');
   const [fullName, setFullName] = useState('');
