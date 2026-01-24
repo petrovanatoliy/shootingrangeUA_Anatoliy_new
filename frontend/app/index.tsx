@@ -132,6 +132,23 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     gap: 12,
   },
+  qrButton: {
+    backgroundColor: 'rgba(99, 121, 194, 0.15)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: COLORS.accent,
+  },
+  qrButtonText: {
+    color: COLORS.accent,
+    fontSize: 16,
+    fontWeight: '600',
+  },
   userButton: {
     backgroundColor: COLORS.secondary,
     flexDirection: 'row',
