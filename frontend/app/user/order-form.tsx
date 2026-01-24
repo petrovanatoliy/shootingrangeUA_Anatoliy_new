@@ -195,14 +195,14 @@ export default function OrderFormScreen() {
           </View>
           {items.map((item, index) => {
             const itemTotal =
-              (item.price - (item.price * item.discountPercent) / 100) * item.quantity;
+              (item.price - (item.price * item.discount_percent) / 100) * item.quantity;
             return (
               <View key={index} style={styles.orderItem}>
                 <View style={styles.orderItemInfo}>
                   <Text style={styles.orderItemName}>{item.name}</Text>
                   <Text style={styles.orderItemDetails}>
                     {item.price} ₴ x {item.quantity}
-                    {item.discountPercent > 0 && ` (-${item.discountPercent}%)`}
+                    {item.discount_percent > 0 && ` (-${item.discount_percent}%)`}
                   </Text>
                 </View>
                 <Text style={styles.orderItemPrice}>{itemTotal.toFixed(2)} ₴</Text>
