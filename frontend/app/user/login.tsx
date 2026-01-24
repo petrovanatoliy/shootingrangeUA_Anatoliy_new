@@ -269,19 +269,18 @@ const styles = StyleSheet.create({
   phoneInputContainer: {
     flexDirection: 'row',
     marginBottom: 20,
+    gap: 8,
   },
-  countryCode: {
+  countryCodeInput: {
     backgroundColor: COLORS.secondary,
     borderRadius: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingVertical: 16,
-    marginRight: 8,
-    justifyContent: 'center',
-  },
-  countryCodeText: {
-    color: COLORS.white,
     fontSize: 16,
+    color: COLORS.white,
     fontWeight: '600',
+    width: 70,
+    textAlign: 'center',
   },
   phoneInput: {
     flex: 1,
