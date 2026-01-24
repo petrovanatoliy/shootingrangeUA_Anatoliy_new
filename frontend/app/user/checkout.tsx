@@ -5,15 +5,14 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { useCartStore } from '../../store/cartStore';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
@@ -24,29 +23,38 @@ const COLORS = {
   light: '#CAD2F6',
   white: '#FFFFFF',
   success: '#4ECDC4',
+  warning: '#FFA500',
   danger: '#FF6B6B',
 };
 
-interface User {
+interface Order {
   id: string;
-  full_name: string;
-  phone: string;
-  discount_percent: number;
-  bonus_points: number;
+  user_id: string;
+  total_amount: number;
+  status: string;
+  items: any[];
+  created_at: string;
+  updated_at: string;
 }
 
-export default function CheckoutScreen() {
+const STATUS_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
+  pending: { label: 'Очікує', color: COLORS.warning, icon: 'time' },
+  confirmed: { label: 'Підтверджено', color: COLORS.success, icon: 'checkmark-circle' },
+  completed: { label: 'Виконано', color: COLORS.accent, icon: 'checkmark-done' },
+  cancelled: { label: 'Скасовано', color: COLORS.danger, icon: 'close-circle' },
+};
+
+export default function MyOrdersScreen() {
   const router = useRouter();
-  const { items, getTotal, clearCart } = useCartStore();
-  const [user, setUser] = useState<User | null>(null);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    loadUser();
+    loadOrders();
   }, []);
 
-  const loadUser = async () => {
+  const loadOrders = async () => {
     try {
       const userId = await AsyncStorage.getItem('user_id');
       if (!userId) {
@@ -54,207 +62,139 @@ export default function CheckoutScreen() {
         return;
       }
 
-      const response = await axios.get(`${API_URL}/api/users/${userId}`);
-      setUser(response.data);
+      const response = await axios.get(`${API_URL}/api/orders?user_id=${userId}`);
+      setOrders(response.data);
     } catch (error) {
-      console.error('Failed to load user:', error);
+      console.error('Failed to load orders:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  const getSubtotal = () => {
-    return items.reduce((total, item) => {
-      const discountedPrice = item.price - (item.price * item.discountPercent) / 100;
-      return total + discountedPrice * item.quantity;
-    }, 0);
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadOrders();
   };
 
-  const getUserDiscount = () => {
-    if (!user || user.discount_percent === 0) return 0;
-    return getSubtotal() * (user.discount_percent / 100);
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('uk-UA', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
-  const getFinalTotal = () => {
-    return getSubtotal() - getUserDiscount();
-  };
-
-  const handleSubmitOrder = async () => {
-    if (!user) return;
-
-    setSubmitting(true);
-    try {
-      const orderItems = items.map((item) => ({
-        type: item.type,
-        item_id: item.id,
-        name: item.name,
-        base_price: item.price,
-        item_discount_percent: item.discountPercent,
-        quantity: item.quantity,
-        duration: item.duration || null,
-        master_name: item.masterName || null,
-        date_time: item.dateTime || null,
-        total_amount: (item.price - (item.price * item.discountPercent) / 100) * item.quantity,
-      }));
-
-      const orderData = {
-        user_id: user.id,
-        items: orderItems,
-        total_amount: getFinalTotal(),
-        discount_percent: user.discount_percent,
-        bonus_points_earned: 0,
-      };
-
-      await axios.post(`${API_URL}/api/orders`, orderData);
-
-      clearCart();
-
-      Alert.alert(
-        '🎉 Дякуємо за замовлення!',
-        'Ваше замовлення прийнято. Ми зв\'яжемося з вами найближчим часом.',
-        [
-          {
-            text: 'На головну',
-            onPress: () => router.replace('/user/home'),
-          },
-        ]
-      );
-    } catch (error) {
-      console.error('Failed to submit order:', error);
-      Alert.alert('Помилка', 'Не вдалося оформити замовлення. Спробуйте ще раз.');
-    } finally {
-      setSubmitting(false);
-    }
+  const getStatusConfig = (status: string) => {
+    return STATUS_CONFIG[status] || STATUS_CONFIG.pending;
   };
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.accent} />
-      </View>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={COLORS.accent} />
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.white} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Оформлення</Text>
-        <View style={styles.placeholder} />
+        <Text style={styles.headerTitle}>Мої замовлення</Text>
+        <Text style={styles.headerSubtitle}>
+          Всього замовлень: {orders.length}
+        </Text>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Contact Info */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Контактні дані</Text>
-          <View style={styles.contactCard}>
-            <View style={styles.contactRow}>
-              <Ionicons name="person" size={20} color={COLORS.accent} />
-              <Text style={styles.contactText}>{user?.full_name}</Text>
-            </View>
-            <View style={styles.contactRow}>
-              <Ionicons name="call" size={20} color={COLORS.accent} />
-              <Text style={styles.contactText}>{user?.phone}</Text>
-            </View>
+      <ScrollView
+        style={styles.scrollView}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={COLORS.accent}
+          />
+        }
+      >
+        {orders.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Ionicons name="receipt-outline" size={80} color={COLORS.accent} />
+            <Text style={styles.emptyText}>Ще немає замовлень</Text>
+            <Text style={styles.emptySubtext}>
+              Оформіть своє перше замовлення в каталозі
+            </Text>
+            <TouchableOpacity
+              style={styles.catalogButton}
+              onPress={() => router.push('/user/catalogs')}
+            >
+              <Ionicons name="grid" size={20} color={COLORS.white} />
+              <Text style={styles.catalogButtonText}>Перейти до каталогу</Text>
+            </TouchableOpacity>
           </View>
-        </View>
+        ) : (
+          <View style={styles.ordersContainer}>
+            {orders.map((order) => {
+              const statusConfig = getStatusConfig(order.status);
+              return (
+                <View key={order.id} style={styles.orderCard}>
+                  <View style={styles.orderHeader}>
+                    <View>
+                      <Text style={styles.orderNumber}>
+                        Замовлення #{order.id.slice(0, 8)}
+                      </Text>
+                      <Text style={styles.orderDate}>
+                        {formatDate(order.created_at)}
+                      </Text>
+                    </View>
+                    <View
+                      style={[
+                        styles.statusBadge,
+                        { backgroundColor: statusConfig.color + '20' },
+                      ]}
+                    >
+                      <Ionicons
+                        name={statusConfig.icon as any}
+                        size={16}
+                        color={statusConfig.color}
+                      />
+                      <Text style={[styles.statusText, { color: statusConfig.color }]}>
+                        {statusConfig.label}
+                      </Text>
+                    </View>
+                  </View>
 
-        {/* Order Items */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Ваше замовлення</Text>
-          {items.map((item) => {
-            const discountedPrice = item.price - (item.price * item.discountPercent) / 100;
-            return (
-              <View key={item.id} style={styles.orderItem}>
-                <View style={styles.orderItemInfo}>
-                  <Ionicons
-                    name={item.type === 'product' ? 'cube' : 'briefcase'}
-                    size={18}
-                    color={COLORS.accent}
-                  />
-                  <View style={styles.orderItemDetails}>
-                    <Text style={styles.orderItemName}>{item.name}</Text>
-                    {item.masterName && (
-                      <Text style={styles.orderItemMeta}>Майстер: {item.masterName}</Text>
-                    )}
-                    {item.duration && (
-                      <Text style={styles.orderItemMeta}>Тривалість: {item.duration} хв</Text>
+                  <View style={styles.orderItems}>
+                    <Text style={styles.itemsTitle}>Товари:</Text>
+                    {order.items.slice(0, 3).map((item, index) => (
+                      <View key={index} style={styles.itemRow}>
+                        <Text style={styles.itemName} numberOfLines={1}>
+                          {item.name}
+                        </Text>
+                        <Text style={styles.itemQuantity}>x{item.quantity}</Text>
+                      </View>
+                    ))}
+                    {order.items.length > 3 && (
+                      <Text style={styles.moreItems}>
+                        +{order.items.length - 3} ще...
+                      </Text>
                     )}
                   </View>
-                </View>
-                <View style={styles.orderItemRight}>
-                  <Text style={styles.orderItemQty}>x{item.quantity}</Text>
-                  <Text style={styles.orderItemPrice}>
-                    {(discountedPrice * item.quantity).toFixed(0)} грн
-                  </Text>
-                </View>
-              </View>
-            );
-          })}
-        </View>
 
-        {/* Summary */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Підсумок</Text>
-          <View style={styles.summaryCard}>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Сума товарів/послуг:</Text>
-              <Text style={styles.summaryValue}>{getSubtotal().toFixed(0)} грн</Text>
-            </View>
-            {user && user.discount_percent > 0 && (
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>
-                  Ваша знижка ({user.discount_percent}%):
-                </Text>
-                <Text style={[styles.summaryValue, { color: COLORS.success }]}>
-                  -{getUserDiscount().toFixed(0)} грн
-                </Text>
-              </View>
-            )}
-            <View style={styles.divider} />
-            <View style={styles.summaryRow}>
-              <Text style={styles.totalLabel}>До сплати:</Text>
-              <Text style={styles.totalValue}>{getFinalTotal().toFixed(0)} грн</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Bonus Info */}
-        {user && user.bonus_points > 0 && (
-          <View style={styles.bonusCard}>
-            <Ionicons name="gift" size={24} color={COLORS.success} />
-            <Text style={styles.bonusText}>
-              У вас є {user.bonus_points} бонусів. Ви отримаєте ще більше за це замовлення!
-            </Text>
+                  <View style={styles.orderFooter}>
+                    <Text style={styles.totalLabel}>Сума:</Text>
+                    <Text style={styles.totalAmount}>{order.total_amount} ₴</Text>
+                  </View>
+                </View>
+              );
+            })}
           </View>
         )}
-
-        <View style={styles.bottomPadding} />
       </ScrollView>
-
-      {/* Bottom Bar */}
-      <View style={styles.bottomBar}>
-        <TouchableOpacity
-          style={[styles.submitButton, submitting && styles.submitButtonDisabled]}
-          onPress={handleSubmitOrder}
-          disabled={submitting}
-        >
-          {submitting ? (
-            <ActivityIndicator color={COLORS.white} />
-          ) : (
-            <>
-              <Text style={styles.submitButtonText}>
-                Підтвердити замовлення
-              </Text>
-              <Text style={styles.submitButtonPrice}>
-                {getFinalTotal().toFixed(0)} грн
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 }
@@ -266,178 +206,153 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  backButton: {
-    padding: 8,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 28,
     fontWeight: 'bold',
     color: COLORS.white,
+    marginBottom: 4,
   },
-  placeholder: {
-    width: 40,
+  headerSubtitle: {
+    fontSize: 14,
+    color: COLORS.light,
   },
   scrollView: {
     flex: 1,
   },
-  section: {
-    marginHorizontal: 20,
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 80,
+    paddingHorizontal: 40,
+  },
+  emptyText: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: COLORS.white,
+    marginTop: 20,
+    marginBottom: 8,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: COLORS.light,
+    textAlign: 'center',
     marginBottom: 24,
   },
-  sectionTitle: {
+  catalogButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.accent,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    gap: 8,
+  },
+  catalogButtonText: {
+    color: COLORS.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  ordersContainer: {
+    padding: 16,
+    gap: 16,
+  },
+  orderCard: {
+    backgroundColor: COLORS.secondary,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  orderHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
+  },
+  orderNumber: {
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.white,
+    marginBottom: 4,
+  },
+  orderDate: {
+    fontSize: 12,
+    color: COLORS.light,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    gap: 6,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  orderItems: {
     marginBottom: 12,
   },
-  contactCard: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: 16,
-    padding: 16,
-    gap: 12,
-  },
-  contactRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  contactText: {
-    color: COLORS.white,
-    fontSize: 15,
-  },
-  orderItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: 12,
-    padding: 14,
+  itemsTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.light,
     marginBottom: 8,
   },
-  orderItemInfo: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    flex: 1,
-    gap: 10,
-  },
-  orderItemDetails: {
-    flex: 1,
-  },
-  orderItemName: {
-    color: COLORS.white,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  orderItemMeta: {
-    color: COLORS.light,
-    fontSize: 12,
-    marginTop: 2,
-  },
-  orderItemRight: {
-    alignItems: 'flex-end',
-  },
-  orderItemQty: {
-    color: COLORS.light,
-    fontSize: 12,
-  },
-  orderItemPrice: {
-    color: COLORS.success,
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  summaryCard: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: 16,
-    padding: 16,
-  },
-  summaryRow: {
+  itemRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 6,
   },
-  summaryLabel: {
-    color: COLORS.light,
+  itemName: {
     fontSize: 14,
-  },
-  summaryValue: {
     color: COLORS.white,
+    flex: 1,
+    marginRight: 8,
+  },
+  itemQuantity: {
     fontSize: 14,
+    color: COLORS.light,
     fontWeight: '500',
   },
-  divider: {
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    marginVertical: 12,
+  moreItems: {
+    fontSize: 12,
+    color: COLORS.accent,
+    fontStyle: 'italic',
+    marginTop: 4,
+  },
+  orderFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.1)',
   },
   totalLabel: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  totalValue: {
-    color: COLORS.success,
-    fontSize: 22,
-    fontWeight: 'bold',
-  },
-  bonusCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: 20,
-    padding: 16,
-    backgroundColor: 'rgba(78,205,196,0.15)',
-    borderRadius: 16,
-    gap: 12,
-  },
-  bonusText: {
-    flex: 1,
+    fontSize: 14,
     color: COLORS.light,
-    fontSize: 13,
+    fontWeight: '500',
   },
-  bottomPadding: {
-    height: 120,
-  },
-  bottomBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: COLORS.secondary,
-    padding: 16,
-    paddingBottom: 32,
-  },
-  submitButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: COLORS.success,
-    paddingVertical: 18,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-  },
-  submitButtonDisabled: {
-    opacity: 0.7,
-    justifyContent: 'center',
-  },
-  submitButtonText: {
-    color: COLORS.white,
+  totalAmount: {
+    fontSize: 20,
     fontWeight: 'bold',
-    fontSize: 16,
-  },
-  submitButtonPrice: {
-    color: COLORS.white,
-    fontWeight: 'bold',
-    fontSize: 18,
+    color: COLORS.success,
   },
 });
