@@ -51,7 +51,7 @@ export default function CartScreen() {
   };
 
   const renderItem = ({ item }: { item: CartItem }) => {
-    const discountedPrice = getDiscountedPrice(item.price, item.discountPercent);
+    const discountedPrice = getDiscountedPrice(item.price, item.discount_percent);
 
     return (
       <View style={styles.cartItem}>
@@ -68,15 +68,15 @@ export default function CartScreen() {
         )}
         <View style={styles.itemInfo}>
           <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
-          {item.masterName && (
-            <Text style={styles.itemMeta}>Майстер: {item.masterName}</Text>
+          {item.master_name && (
+            <Text style={styles.itemMeta}>Майстер: {item.master_name}</Text>
           )}
           {item.duration && (
             <Text style={styles.itemMeta}>Тривалість: {item.duration} хв</Text>
           )}
           <View style={styles.priceRow}>
             <Text style={styles.itemPrice}>{discountedPrice.toFixed(0)} грн</Text>
-            {item.discountPercent > 0 && (
+            {item.discount_percent > 0 && (
               <Text style={styles.itemOldPrice}>{item.price} грн</Text>
             )}
           </View>
