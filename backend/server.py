@@ -762,6 +762,50 @@ async def check_if_admin(phone: str):
     
     return {"is_admin": is_admin}
 
+@api_router.post("/settings/test-connection")
+async def test_server_connection(server_address: str, access_code: str):
+    """Test connection to external server"""
+    import httpx
+    
+    try:
+        # Clean up server address
+        server_url = server_address.strip()
+        if not server_url.startswith('http'):
+            server_url = f"https://{server_url}"
+        
+        # Try to connect to the server
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            headers = {}
+            if access_code:
+                headers['Authorization'] = f'Bearer {access_code}'
+            
+            response = await client.get(f"{server_url}/api/", headers=headers)
+            
+            if response.status_code == 200:
+                return {
+                    "success": True,
+                    "message": "Зв'язок встановлено успішно",
+                    "status_code": response.status_code
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": f"Сервер відповів з кодом {response.status_code}",
+                    "status_code": response.status_code
+                }
+    except httpx.TimeoutException:
+        return {
+            "success": False,
+            "message": "Перевищено час очікування відповіді від сервера",
+            "status_code": 0
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"Помилка підключення: {str(e)}",
+            "status_code": 0
+        }
+
 # ===================== TELEGRAM NOTIFICATION =====================
 
 async def send_telegram_notification(order: Order, user: User):
