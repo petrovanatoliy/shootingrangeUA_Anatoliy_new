@@ -288,6 +288,65 @@ export default function SettingsScreen() {
 
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
+              <Ionicons name="server" size={24} color={COLORS.accent} />
+              <Text style={styles.sectionTitle}>Підключення до сервера</Text>
+            </View>
+
+            <View style={styles.infoCard}>
+              <Text style={styles.infoText}>
+                Налаштуйте підключення до зовнішнього backend сервера.
+                Перевірте зв'язок перед збереженням налаштувань.
+              </Text>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Адреса сервера</Text>
+              <TextInput
+                style={styles.input}
+                value={settings.server_address}
+                onChangeText={(text) =>
+                  setSettings({ ...settings, server_address: text })
+                }
+                placeholder="https://api.example.com"
+                placeholderTextColor={COLORS.accent}
+                keyboardType="url"
+                autoCapitalize="none"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Код доступу користувача</Text>
+              <TextInput
+                style={styles.input}
+                value={settings.access_code}
+                onChangeText={(text) =>
+                  setSettings({ ...settings, access_code: text })
+                }
+                placeholder="Введіть код доступу"
+                placeholderTextColor={COLORS.accent}
+                secureTextEntry
+                autoCapitalize="none"
+              />
+            </View>
+
+            <TouchableOpacity 
+              style={[styles.testButton, testing && styles.testButtonDisabled]} 
+              onPress={testConnection}
+              disabled={testing}
+            >
+              {testing ? (
+                <ActivityIndicator color={COLORS.white} />
+              ) : (
+                <>
+                  <Ionicons name="wifi" size={18} color={COLORS.white} />
+                  <Text style={styles.testButtonText}>Перевірити зв'язок</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
               <Ionicons name="language" size={24} color={COLORS.accent} />
               <Text style={styles.sectionTitle}>Мова</Text>
             </View>
