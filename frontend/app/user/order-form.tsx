@@ -243,8 +243,7 @@ export default function OrderFormScreen() {
         <View style={styles.infoBox}>
           <Ionicons name="information-circle" size={20} color={COLORS.accent} />
           <Text style={styles.infoBoxText}>
-            Після оформлення замовлення ви отримаєте бонусні бали, а повідомлення буде
-            надіслано до Telegram.
+            Після оформлення замовлення ви отримаєте бонусні бали.
           </Text>
         </View>
       </ScrollView>

@@ -445,6 +445,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   bottomPadding: {
-    height: 20,
+    height: 48,
   },
 });
