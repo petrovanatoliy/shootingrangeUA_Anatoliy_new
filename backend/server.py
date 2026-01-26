@@ -579,7 +579,8 @@ async def remove_cart_item(user_id: str, item_id: str):
     if not cart:
         raise HTTPException(status_code=404, detail="Cart not found")
     
-    items = [i for i in cart.get("items", []) if i["id"] != item_id]
+    # Filter items (they are already dicts from MongoDB)
+    items = [i for i in cart.get("items", []) if i.get("id") != item_id]
     
     await db.carts.update_one(
         {"user_id": user_id},
