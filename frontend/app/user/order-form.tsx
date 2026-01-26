@@ -418,20 +418,33 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     backgroundColor: COLORS.success,
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
+    paddingVertical: 18,
+    paddingHorizontal: 16,
     borderRadius: 12,
-    gap: 8,
   },
   submitButtonDisabled: {
     opacity: 0.6,
+  },
+  submitButtonContent: {
+    alignItems: 'center',
+    gap: 6,
+  },
+  submitButtonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   submitButtonText: {
     color: COLORS.white,
     fontSize: 16,
     fontWeight: '600',
+  },
+  submitButtonAmount: {
+    color: COLORS.white,
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   emptyContainer: {
     flex: 1,
