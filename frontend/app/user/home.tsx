@@ -147,6 +147,33 @@ export default function HomeScreen() {
           </View>
         )}
 
+        {/* Category Type Selector */}
+        <View style={styles.categoryTypeSelector}>
+          <TouchableOpacity
+            style={styles.typeButton}
+            onPress={() => router.push('/user/catalogs?type=product')}
+          >
+            <Ionicons name="cube" size={32} color={COLORS.accent} />
+            <Text style={styles.typeButtonText}>Товари</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={styles.typeButton}
+            onPress={() => router.push('/user/services-list')}
+          >
+            <Ionicons name="calendar" size={32} color={COLORS.success} />
+            <Text style={styles.typeButtonText}>Тренування</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={styles.typeButton}
+            onPress={() => router.push('/user/services-list?type=rental')}
+          >
+            <Ionicons name="business" size={32} color={COLORS.warm} />
+            <Text style={styles.typeButtonText}>Оренда</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Catalogs Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
