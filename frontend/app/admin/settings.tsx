@@ -381,6 +381,21 @@ export default function SettingsScreen() {
             </View>
           </View>
 
+          {/* App Info */}
+          <View style={styles.appInfoSection}>
+            <View style={styles.appInfoDivider} />
+            
+            <View style={styles.appInfoContent}>
+              <Text style={styles.versionText}>Версія мобільного додатку: 1.0.0</Text>
+              
+              <Text style={styles.developmentText}>Development by HVOYA integra 2026</Text>
+              
+              <TouchableOpacity onPress={() => {}}>
+                <Text style={styles.websiteText}>hvoya.com.ua</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
           <View style={styles.bottomPadding} />
         </ScrollView>
       </KeyboardAvoidingView>
