@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import Constants from 'expo-constants';
+import { apiConfig } from '../config/apiConfig';
 
 const API_URL = Constants.expoConfig?.extra?.apiUrl || process.env.EXPO_PUBLIC_BACKEND_URL || 'https://shooting-range-ua.preview.emergentagent.com';
 
@@ -33,10 +34,18 @@ export default function WelcomeScreen() {
   useEffect(() => {
     if (!checked) {
       setChecked(true);
-      checkAuth();
-      checkAdminPhones();
+      initializeApp();
     }
   }, [checked]);
+
+  const initializeApp = async () => {
+    // Ініціалізувати API конфігурацію
+    await apiConfig.initialize();
+    
+    // Потім виконати checkAuth та checkAdminPhones
+    checkAuth();
+    checkAdminPhones();
+  };
 
   const checkAuth = async () => {
     try {
