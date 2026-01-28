@@ -85,7 +85,25 @@ export default function SettingsScreen() {
     setSaving(true);
     try {
       await axios.put(`${API_URL}/api/settings`, settings);
-      Alert.alert('Успіх', 'Налаштування збережено');
+      
+      // Якщо змінилась адреса сервера, оновити глобальну конфігурацію
+      if (settings.server_address && settings.server_address !== API_URL) {
+        await setApiUrl(settings.server_address);
+        Alert.alert(
+          'Успіх', 
+          'Налаштування збережено!\n\nАдреса сервера оновлена. Перезапустіть додаток для застосування змін.',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                // Можна додати логіку перезавантаження додатку
+              }
+            }
+          ]
+        );
+      } else {
+        Alert.alert('Успіх', 'Налаштування збережено');
+      }
     } catch (error) {
       Alert.alert('Помилка', 'Не вдалося зберегти налаштування');
     } finally {
