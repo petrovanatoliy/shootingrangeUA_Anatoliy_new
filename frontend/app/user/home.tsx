@@ -332,6 +332,28 @@ const styles = StyleSheet.create({
     color: COLORS.light,
     fontSize: 12,
   },
+  categoryTypeSelector: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+    gap: 12,
+  },
+  typeButton: {
+    flex: 1,
+    backgroundColor: COLORS.secondary,
+    borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  typeButtonText: {
+    color: COLORS.white,
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
   section: {
     marginBottom: 24,
   },
