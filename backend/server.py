@@ -41,6 +41,7 @@ class CatalogBase(BaseModel):
     name: str
     image: Optional[str] = None
     is_visible: bool = True
+    is_product: bool = True  # True для товарів, False для послуг
 
 class CatalogCreate(CatalogBase):
     pass
@@ -49,6 +50,7 @@ class CatalogUpdate(BaseModel):
     name: Optional[str] = None
     image: Optional[str] = None
     is_visible: Optional[bool] = None
+    is_product: Optional[bool] = None
 
 class Catalog(CatalogBase):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
